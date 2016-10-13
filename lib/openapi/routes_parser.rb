@@ -6,12 +6,9 @@ module Openapi
 
     def initialize(controller)
       @controller = controller
-      @routes = []
-
       formatter = ActionDispatch::Routing::ConsoleFormatter.new
       @routes_table = routes_inspector.format(formatter, controller_slug)
-
-      parse!
+      @routes = parse!
     end
 
     private
@@ -29,22 +26,22 @@ module Openapi
         to_s.
         underscore.
         gsub('::', '/').
-        gsub('_controller','')
+        gsub('_controller', '')
     end
 
     def parse!
-      @routes_table = @routes_table.split("\n")
-      @routes_table.shift
+      routes = @routes_table.split("\n")
+      routes.shift
 
-      @routes_table.each do |row|
+      routes.map do |row|
         row.remove! ' {:format=>:json}'
         action = row.sub(/.*?#/, '')
         route  = row.split(' ').reverse
         path   = route[1].gsub('(.:format)','')
         method = route[2].underscore
 
-        @routes << [method, path, action]
-      end
+        [method, path, action]
+      end.compact
     end
   end
 end

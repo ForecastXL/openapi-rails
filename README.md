@@ -8,7 +8,7 @@ CRUD interface for Rails models with OpenAPI ([Swagger](http://swagger.io/))
 specification support and [Swagger UI](http://swagger.io/swagger-ui/)
 integration.
 
-**This gem supports only Mongoid, for other ORMs RPs are welcome.**
+**This gem supports Mongoid and ActiveRecord, for other ORMs PRs are welcome.**
 
 [Demo](https://openapi-demo1.herokuapp.com/openapi#/Books) project for basic `openapi-rails` integration.
 
@@ -30,7 +30,7 @@ If you have an existing project, please look through this readme file first to
 get an idea of how it works.
 
 Generator is creating configuration file `config/initializer/openapi.rb` with
-default `/api` configuration and base controller `app/controllers/api/base_controlle.rb` that provides CRUD actions and specification builder.
+default `/api` configuration and base controller `app/controllers/api/base_controller.rb` that provides CRUD actions and specification builder.
 
 
 ## Usage
@@ -105,6 +105,31 @@ Following features are supported out of the box:
   - `CSV` format for `index` action, requires `.csv` format to be added to the
     request url, e.g. `/api/posts.csv`.
 
+### ActiveRecord:
+
+For those who are using ActiveRecord the following configurations of you models are
+automatically converted into an api and its specs.
+
+Attributes:
+  - type
+  - format
+  - default
+
+Validators:
+  - Presence
+  - Uniqueness
+  - Format (regex)
+  - Inclusion
+  - Length
+  - Numericality
+
+Associations:
+
+All associations defined on the models are loaded into the specs and can be requested through the api.
+
+AcceptsNestedAttributes:
+
+When you define 'accepts_nested_attributes' on your models the api will allow the client to create these associated models.
 
 ## Customization
 

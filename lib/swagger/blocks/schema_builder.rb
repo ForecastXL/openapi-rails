@@ -30,7 +30,7 @@ module Swagger
 
         model_class.fields.each do |name, options|
           type = options.type.to_s
-          defaul_value = options.options[:default]
+          default_value = options.options[:default]
 
           next unless SUPPORTED_TYPES.include?(type)
 
@@ -70,15 +70,15 @@ module Swagger
 
             when 'Mongoid::Boolean'
               key :type, :boolean
-              key :default, defaul_value
+              key :default, default_value
 
             when 'Integer'
               key :type, :integer
-              key :default, defaul_value.to_i
+              key :default, default_value.to_i
 
             else
               key :type, :string
-              key :default, defaul_value.to_s
+              key :default, default_value.to_s
 
             end
           end
