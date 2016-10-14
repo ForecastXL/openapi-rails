@@ -6,7 +6,7 @@ Openapi::Engine.routes.draw do
       if controller.respond_to?(:build_openapi_specification)
         controller.build_openapi_specification(base_path: base_path)
       else
-        raise NoMethodError, 'Restart the Rails server after changing a resource in the api routes.'
+        # raise NoMethodError, 'Restart the Rails server after changing a resource in the api routes.'
       end
     end
 

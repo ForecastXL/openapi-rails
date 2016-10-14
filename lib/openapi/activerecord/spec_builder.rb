@@ -73,11 +73,11 @@ module Openapi
             ('/' + to_s.remove(/Controller$/).gsub('::', '/').underscore).
               remove(openapi_base_path)
 
-          self.openapi_except_actions ||= []
+          self.openapi_except_actions  ||= []
           self.openapi_collection_name ||= to_s.split('::').last.sub(/Controller$/, '')
-          self.openapi_resource_name ||= openapi_collection_name.singularize
-          self.openapi_resource_class ||= self&.resource_class
-          self.openapi_resource_class ||= openapi_resource_name.constantize
+          self.openapi_resource_name   ||= openapi_collection_name.singularize
+          self.openapi_resource_class  ||= self&.resource_class
+          self.openapi_resource_class  ||= openapi_resource_name.constantize
 
           build_openapi_definitions
           build_openapi_paths
@@ -102,23 +102,28 @@ module Openapi
             activerecord_build_model_schema(resource_class)
 
             resource_class.reflect_on_all_associations.each do |association|
-              relation_type = association.class.to_s
+              relation_type = if association.respond_to?(:delegate_reflection)
+                association.delegate_reflection.class.to_s
+              else
+                association.class.to_s
+              end
 
-              if true # relation_type.include? 'Mongoid::Relations::Embedded'
+              begin
                 embedded_resource_class = association.klass
+              rescue NameError
+                # binding.pry
+                next
+              end
 
-                if relation_type.include? 'Many'
-                  property association.name.to_s, type: :array do
-                    items do
-                      activerecord_build_model_schema(embedded_resource_class)
-                    end
-                  end
-
-                else
-                  property association.name.to_s.singularize, type: :object do
+              if relation_type&.include?('Many')
+                property association.name.to_s, type: :array do
+                  items do
                     activerecord_build_model_schema(embedded_resource_class)
                   end
-
+                end
+              else
+                property association.name.to_s.singularize, type: :object do
+                  activerecord_build_model_schema(embedded_resource_class)
                 end
               end
             end
@@ -140,23 +145,16 @@ module Openapi
           actions     = routes.map { |r| r[2] }.uniq
           json_mime   = %w(application/json)
 
-          include_index   = actions.include?('index') && !openapi_except_actions.include?('index')
-          include_create  = actions.include?('create') &&
-                            !openapi_except_actions.include?('create')
-          include_show    = actions.include?('show') &&
-                            !openapi_except_actions.include?('show')
-          include_update  = actions.include?('update') &&
-                            !openapi_except_actions.include?('update')
-          include_destroy = actions.include?('destroy') &&
-                            !openapi_except_actions.include?('destroy')
+          include_index   = actions.include?('index') && openapi_except_actions.exclude?('index')
+          include_create  = actions.include?('create') && openapi_except_actions.exclude?('create')
+          include_show    = actions.include?('show') && openapi_except_actions.exclude?('show')
+          include_update  = actions.include?('update') && openapi_except_actions.exclude?('update')
+          include_destroy = actions.include?('destroy') && openapi_except_actions.exclude?('destroy')
 
-          include_collection_actions =
-            (include_index || include_create)
-          include_resource_actions =
-            (include_show || include_update || include_destroy)
+          include_collection_actions = include_index || include_create
+          include_resource_actions = include_show || include_update || include_destroy
 
-          support_search = openapi_resource_class.instance_methods(false)
-                                                 .include?(:search)
+          support_search = openapi_resource_class.instance_methods(false).include?(:search)
 
           if include_collection_actions
             swagger_path path do
