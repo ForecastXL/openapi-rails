@@ -17,6 +17,7 @@ require 'swagger/blocks/items_node'
 require 'openapi/configuration'
 require 'openapi/routes_parser'
 require 'openapi/engine'
+require 'openapi/spec_builder'
 require 'openapi/version'
 
 module Openapi

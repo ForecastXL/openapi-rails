@@ -1,33 +1,4 @@
 module Openapi
-  class SwaggerRoot
-    include Swagger::Blocks
-
-    def self.build_specification(config, controller_classes)
-      schema = Rails.env.production? ? 'https' : 'http'
-
-      swagger_root do
-        key :swagger,  '2.0'
-        key :host,     ENV['HOST'] || 'localhost:3000'
-        key :basePath, config[:base_path] || '/api'
-        key :consumes, %w(application/json)
-        key :produces, %w(application/json text/csv)
-        key :schemes,  [schema]
-
-        info do
-          key :title,       config[:title] || 'Default'
-          key :description, config[:description] || ''
-          key :version,     config[:version] || '1.0'
-        end
-
-        controller_classes.each do |c|
-          tag do
-            key :name, c.openapi_collection_name
-          end
-        end
-      end
-    end
-  end
-
   module Mongoid
     module SpecBuilder
       extend ActiveSupport::Concern

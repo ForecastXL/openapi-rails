@@ -6,15 +6,17 @@ Openapi::Engine.routes.draw do
       if controller.respond_to?(:build_openapi_specification)
         controller.build_openapi_specification(base_path: base_path)
       else
-        # raise NoMethodError, 'Restart the Rails server after changing a resource in the api routes.'
+        warn "#{controller} was given but does not inherit from an Openapi controller"
       end
     end
 
     name = name.to_s.titleize.remove(' ')
     root_klass_name = "#{name}SwaggerRootController"
-    klass = Object.const_set root_klass_name, Class.new(Openapi::SwaggerRoot)
-    klass.build_specification(config, config[:controllers])
 
-    config[:controllers].push klass
+    unless root_klass_name.in?(config[:controllers].map(&:to_s))
+      klass = Object.const_set(root_klass_name, Class.new(Openapi::SwaggerRoot))
+      klass.build_specification(config)
+      config[:controllers].push(klass)
+    end
   end
 end

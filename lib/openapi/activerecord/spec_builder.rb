@@ -1,44 +1,4 @@
 module Openapi
-  class SwaggerRoot
-    include Swagger::Blocks
-
-    def self.build_specification(config, _controller_classes)
-      swagger_root do
-        key :swagger,  '2.0'
-        key :host,     ENV['HOST'] || 'localhost:3000'
-        key :basePath, config[:base_path] || '/api'
-        key :consumes, %w(application/json)
-        key :produces, %w(application/json text/csv)
-        key :schemes,  config[:base_path] || 'https'
-
-        info do
-          key :title,       config[:title] || 'Default'
-          key :description, config[:description] || ''
-          key :version,     config[:version] || '1.0'
-        end
-
-        config[:security_definitions].each do |name, security|
-          security_definition name do
-            key :type, security[:type]
-            key :authorizationUrl, security[:authorization_url] if security[:authorization_url]
-            key :flow, security[:flow] if security[:flow]
-            scopes do
-              security[:scopes].each do |scope, description|
-                key scope, description
-              end
-            end if security[:scopes]
-          end
-        end
-
-        config[:controllers].each do |controller|
-          tag do
-            key :name, controller.openapi_collection_name
-          end
-        end
-      end
-    end
-  end
-
   module ActiveRecord
     module SpecBuilder
       extend ActiveSupport::Concern
@@ -70,8 +30,7 @@ module Openapi
           self.openapi_base_path = options[:base_path]
 
           self.openapi_relative_path ||=
-            ('/' + to_s.remove(/Controller$/).gsub('::', '/').underscore).
-              remove(openapi_base_path)
+            ('/' + to_s.remove(/Controller$/).gsub('::', '/').underscore).remove(openapi_base_path)
 
           self.openapi_except_actions  ||= []
           self.openapi_collection_name ||= to_s.split('::').last.sub(/Controller$/, '')
