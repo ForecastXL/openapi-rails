@@ -23,15 +23,15 @@ class ActiveRecord::Base
     end
 
     def openapi_writable_attributes
-      attributes - openapi_hidden_attributes - openapi_read_only_attributes
+      openapi_attributes - openapi_hidden_attributes - openapi_read_only_attributes
     end
 
     def openapi_readable_attributes
-      attributes - openapi_hidden_attributes
+      openapi_attributes - openapi_hidden_attributes
     end
 
-    def attributes
-      @attributes ||= columns.map { |column| column.name.to_sym }
+    def openapi_attributes
+      @openapi_attributes ||= columns.map { |column| column.name.to_sym }
     end
   end
 end
