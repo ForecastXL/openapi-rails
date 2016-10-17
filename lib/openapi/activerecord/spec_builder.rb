@@ -35,8 +35,13 @@ module Openapi
           self.openapi_except_actions  ||= []
           self.openapi_collection_name ||= to_s.split('::').last.sub(/Controller$/, '')
           self.openapi_resource_name   ||= openapi_collection_name.singularize
-          self.openapi_resource_class  ||= self&.resource_class
-          self.openapi_resource_class  ||= openapi_resource_name.constantize
+          self.openapi_resource_class  ||= self&.resource_class || openapi_resource_name.constantize
+
+          # Before database actions such as create, migrate, drop, etc. the routes are loaded and
+          # that means the openapi_definitions will try to lookup the columns of the tables to get
+          # their information. If a table does not yet exist it will crash. Therefore we test if
+          # it is already created or not.
+          return unless ::ActiveRecord::Base.connection.data_source_exists?(openapi_resource_class.table_name)
 
           build_openapi_definitions
           build_openapi_paths
@@ -70,7 +75,6 @@ module Openapi
               begin
                 embedded_resource_class = association.klass
               rescue NameError
-                # binding.pry
                 next
               end
 
