@@ -10,8 +10,8 @@ module Openapi
         class_attribute :resource_class
         class_attribute :per_page
 
-        ## Actions
-
+        # ACTIONS
+        #
         def index
           @chain = default_scope
 
@@ -21,68 +21,68 @@ module Openapi
           set_index_headers!
 
           respond_to do |format|
-            format.json { render json: { data: @chain.as_json(json_config) } }
+            format.json { render json: Oj.dump(data: @chain.as_json(json_config)), status: 200 }
             format.csv  { render csv: @chain }
           end
         end
 
         def show
-          @object = find_object
-          set_object_version!
-          render json: { data: @object.as_json(json_config) }
+          if object = find_object
+            render json: Oj.dump(data: object.as_json(json_config)), status: 200
+          else
+            object_not_found
+          end
         end
 
         def create
-          @object = build_object
-
-          if @object.save
-            render json: { data: @object.as_json(json_config) }, status: :created
-
+          object = build_object
+          if object.save
+            render json: { data: object.as_json(json_config) }, status: 201
           else
-            log_errors @object.errors
-            render json: { errors: @object.errors } , status: :unprocessable_entity
-
+            log_errors object.errors
+            render json: { errors: object.errors }, status: 422
           end
         end
 
         def update
-          @object = find_object
-          if @object.update_attributes(resource_params)
-            render json: @object.as_json(json_config)
-
+          if object = find_object
+            if object.update_attributes(resource_params)
+              render json: object.as_json(json_config), status: 200
+            else
+              log_errors object.errors
+              render json: object.errors, status: 422
+            end
           else
-            log_errors @object.errors
-            render json: @object.errors, status: :unprocessable_entity
-
+            object_not_found
           end
         end
 
         def destroy
-          @object = find_object
-
-          if @object.destroy
-            render nothing: true, status: :no_content
-
+          if object = find_object
+            if object.destroy
+              render nothing: true, status: 204
+            else
+              log_errors object.errors
+              render json: object.errors, status: 422
+            end
           else
-            log_errors @object.errors
-            render json: @object.errors, status: :unprocessable_entity
-
+            object_not_found
           end
+        end
+
+        private
+
+        # ERRORS
+        #
+
+        def object_not_found
+          render json: { errors: ["#{resource_request_name} with id #{params[:id]} not found."] }, status: 404
         end
 
         def response_config
           config  = {}
-          config[:only] = fields
-          methods = params[:methods]
-
-          if methods
-            include_methods = methods.split(',').select do |method_name|
-              method = method_name.to_sym
-              resource_class.instance_methods(false).include?(method)
-            end
-            config[:methods] = include_methods unless include_methods.empty?
-          end
-
+          config[:only] = fields(params[:fields]) if params[:fields].present?
+          config[:methods] = methods(params[:methods]) if params[:methods].present?
           config
         end
         alias csv_config response_config
@@ -148,13 +148,27 @@ module Openapi
         end
 
         #
+        # METHODS
+        #
+        def methods(param)
+          @methods ||= param.split(',').select do |method|
+            whitelisted_methods.include?(method.to_sym)
+          end
+        end
+
+        # @return [Array] the lists all the methods allowed to be called on the records.
+        def whitelisted_methods
+          [] || resource_class.new.methods
+        end
+
+        #
         # FIELDS
         #
-        # With the fields property the attributes to be returned be record can be limited.
+        # With the fields property the attributes to be returned per record can be limited.
 
         # @return [Array] with the fields to be returned. Will return the default fields if none specified.
-        def fields
-          @fields ||= params[:fields]&.split(',')&.keep_if { |e| e.in?(readable_fields) } || readable_fields
+        def fields(param)
+          @fields ||= param.split(',').map(&:to_sym).keep_if { |e| e.in?(readable_fields) }
         end
 
         # The default fields

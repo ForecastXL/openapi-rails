@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   # C extensions to accelerate the Ruby BSON serialization
   s.add_dependency 'bson_ext'
   # Fast streaming JSON parsing and encoding library for Ruby
-  s.add_dependency 'yajl-ruby'
+  s.add_dependency 'oj'
   # Map incoming controller parameters to named scopes in resources
   s.add_dependency 'has_scope'
 end

@@ -1,6 +1,5 @@
 require 'bson'
-require 'yajl'
-require 'yajl/json_gem'
+require 'oj'
 require 'swagger/blocks'
 require 'rails/routes'
 

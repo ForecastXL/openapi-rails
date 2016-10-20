@@ -9,7 +9,7 @@ module Openapi
         key :basePath, config[:base_path] || '/api'
         key :consumes, %w(application/json)
         key :produces, %w(application/json text/csv)
-        key :schemes,  config[:base_path] || 'https'
+        key :schemes,  config[:schemes] || ['https']
 
         info do
           key :title,       config[:title] || 'Default'
