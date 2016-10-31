@@ -3,7 +3,7 @@ require 'openapi/activerecord/spec_builder'
 require 'openapi/activerecord/crud_actions'
 
 class ActiveRecord::Base
-  class_attribute :_openapi_read_only, :_openapi_hidden
+  class_attribute :_openapi_read_only, :_openapi_hidden, :_openapi_methods
 
   class << self
     def openapi_read_only(*attributes)
@@ -32,6 +32,14 @@ class ActiveRecord::Base
 
     def openapi_attributes
       @openapi_attributes ||= columns.map { |column| column.name.to_sym }
+    end
+
+    def openapi_methods(*attributes)
+      self._openapi_methods = attributes
+    end
+
+    def openapi_method_attributes
+      self._openapi_methods || []
     end
   end
 end

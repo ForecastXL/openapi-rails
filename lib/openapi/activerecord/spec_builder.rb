@@ -33,7 +33,7 @@ module Openapi
             ('/' + to_s.remove(/Controller$/).gsub('::', '/').underscore).remove(openapi_base_path)
 
           self.openapi_except_actions  ||= []
-          self.openapi_collection_name ||= to_s.split('::').last.sub(/Controller$/, '')
+          self.openapi_collection_name ||= to_s[/[^:]+(?=Controller\z)/]
           self.openapi_resource_name   ||= openapi_collection_name.singularize
           self.openapi_resource_class  ||= self&.resource_class || openapi_resource_name.constantize
 
@@ -95,6 +95,16 @@ module Openapi
           swagger_schema "#{resource_name}Input" do
             property resource_property_name, type: :object do
               activerecord_build_model_schema(resource_class, false)
+
+              if resource_class.nested_attributes_options?
+                resource_class.nested_attributes_options.each do |key, options|
+                  next if options[:update_only]
+
+                  property key, type: :object do
+                    activerecord_build_model_schema(key.to_s.classify.constantize)
+                  end
+                end
+              end
             end
           end
         end
@@ -395,9 +405,7 @@ module Openapi
 
           unless no_spec_methods.empty?
             routes = no_spec_methods.map do |r|
-              method = r[0].upcase
-              path   = r[1]
-              "  #{method} #{path}"
+              "  #{r[0].upcase} #{r[1]}"
             end.join("\n")
 
             puts "\n#{self} misses specification for:\n#{routes}\n\n"

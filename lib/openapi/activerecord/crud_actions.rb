@@ -81,7 +81,7 @@ module Openapi
 
         def response_config
           config  = {}
-          config[:only] = fields(params[:fields]) if params[:fields].present?
+          config[:only] = fields(params[:fields])
           config[:methods] = methods(params[:methods]) if params[:methods].present?
           config
         end
@@ -158,7 +158,7 @@ module Openapi
 
         # @return [Array] the lists all the methods allowed to be called on the records.
         def whitelisted_methods
-          [] || resource_class.new.methods
+          @whitelisted_methods ||= resource_class.openapi_method_attributes || []
         end
 
         #
@@ -168,7 +168,7 @@ module Openapi
 
         # @return [Array] with the fields to be returned. Will return the default fields if none specified.
         def fields(param)
-          @fields ||= param.split(',').map(&:to_sym).keep_if { |e| e.in?(readable_fields) }
+          @fields ||= param&.split(',')&.map(&:to_sym)&.keep_if { |e| e.in?(readable_fields) } || readable_fields
         end
 
         # The default fields

@@ -14,7 +14,7 @@ module Swagger
         read_only_fields = model_class.openapi_read_only_attributes
 
         # Adds an Array with required fields to the resource
-        key :required, required_fields
+        key :required, required_fields - hidden_fields
 
         model_class.columns.each do |column|
           name = column.name.to_sym
@@ -100,9 +100,12 @@ module Swagger
         end
       end
 
-      #
+      # Adds validation keys based on the ActiveModel/Record validations found in the class.
       def validations(model_class, field)
         model_class.validators_on(field.name).each do |validator|
+          # Skip any validations with conditions since we cannot predicate their effect on the api.
+          next if validator.options.keys.any? { |k| k.in?(%i(unless if scope)) }
+
           case validator.class.to_s[/[a-z]+\z/i]
           when 'InclusionValidator'
             key :required, !validator.options[:allow_blank] || !validator.options[:allow_nil]
@@ -134,7 +137,7 @@ module Swagger
               end
             end
           when 'ExclusionValidator', 'AbsenceValidator'
-            # For these standard validators no equivalent in the openapi spec is known.
+            # For these standard validators no equivalent in the openapi spec is (yet) known.
           when 'LengthValidator'
             validator.options.each do |option, value|
               key :minLength, value if option == :minimum || option == :is
