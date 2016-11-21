@@ -60,7 +60,7 @@ module Openapi
         def destroy
           if object = find_object
             if object.destroy
-              render nothing: true, status: 204
+              head :no_content, status: 204
             else
               log_errors object.errors
               render json: object.errors, status: 422

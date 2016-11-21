@@ -30,7 +30,7 @@ module Openapi
           self.openapi_base_path = options[:base_path]
 
           self.openapi_relative_path ||=
-            ('/' + to_s.remove(/Controller$/).gsub('::', '/').underscore).remove(openapi_base_path)
+            ('/' + to_s.remove(/Controller\z/).gsub('::', '/').underscore).remove(openapi_base_path)
 
           self.openapi_except_actions  ||= []
           self.openapi_collection_name ||= to_s[/[^:]+(?=Controller\z)/]
