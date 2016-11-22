@@ -37,20 +37,20 @@ module Openapi
         def create
           object = build_object
           if object.save
-            render json: { data: object.as_json(json_config) }, status: 201
+            render json: Oj.dump(data: object.as_json(json_config)), status: 201
           else
             log_errors object.errors
-            render json: { errors: object.errors }, status: 422
+            render json: Oj.dump(errors: object.errors), status: 422
           end
         end
 
         def update
           if object = find_object
             if object.update_attributes(resource_params)
-              render json: object.as_json(json_config), status: 200
+              render json: Oj.dump(data: object.as_json(json_config)), status: 200
             else
               log_errors object.errors
-              render json: object.errors, status: 422
+              render json: Oj.dump(errors: object.errors), status: 422
             end
           else
             object_not_found
@@ -63,7 +63,7 @@ module Openapi
               head :no_content, status: 204
             else
               log_errors object.errors
-              render json: object.errors, status: 422
+              render json: Oj.dump(errors: object.errors), status: 422
             end
           else
             object_not_found
