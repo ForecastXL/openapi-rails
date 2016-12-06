@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-$:.push File.expand_path('../lib', __FILE__)
+$LOAD_PATH.push File.expand_path('../lib', __FILE__)
 require 'openapi/version'
 require 'date'
 
@@ -7,19 +7,19 @@ Gem::Specification.new do |s|
   s.name             = 'openapi-rails'
   s.summary          = 'CRUD interface for Rails models with OpenAPI (Swagger) specification support and Swagger UI integration.'
   s.homepage         = 'http://github.com/slate-studio/openapi-rails'
-  s.authors          = [ 'Alexander Kravets', 'Denis Popov' ]
-  s.email            = "alex@slatestudio.com"
+  s.authors          = ['Alexander Kravets', 'Denis Popov']
+  s.email            = 'alex@slatestudio.com'
   s.date             = Date.today.strftime('%Y-%m-%d')
-  s.extra_rdoc_files = %w[ README.md ]
+  s.extra_rdoc_files = %w(README.md)
   s.license          = 'MIT'
   s.files            = `git ls-files`.split("\n")
   s.test_files       = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.require_paths    = [ 'lib' ]
+  s.require_paths    = ['lib']
   s.version          = Openapi::VERSION
   s.platform         = Gem::Platform::RUBY
 
   # DSL for pure Ruby code blocks that can be turned into JSON
-  s.add_dependency 'swagger-blocks'
+  s.add_dependency 'swagger-blocks', '~> 1.3'
   # A set of Rails responders to dry up application controllers
   s.add_dependency 'responders', '~> 2.3'
   # Clean, powerful, customizable and sophisticated paginator
