@@ -5,7 +5,8 @@ require 'date'
 
 Gem::Specification.new do |s|
   s.name             = 'openapi-rails'
-  s.summary          = 'CRUD interface for Rails models with OpenAPI (Swagger) specification support and Swagger UI integration.'
+  s.summary          = 'CRUD interface for Rails models with OpenAPI (Swagger) specification \
+                        support and Swagger UI integration.'
   s.homepage         = 'http://github.com/slate-studio/openapi-rails'
   s.authors          = ['Alexander Kravets', 'Denis Popov']
   s.email            = 'alex@slatestudio.com'

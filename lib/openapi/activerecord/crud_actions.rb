@@ -39,8 +39,8 @@ module Openapi
           if object.save
             render json: Oj.dump(data: object.as_json(json_config)), status: 201
           else
-            log_errors object.errors
-            render json: Oj.dump(errors: object.errors), status: 422
+            log_errors object.errors.messages
+            render json: Oj.dump(errors: object.errors.messages), status: 422
           end
         end
 
@@ -49,8 +49,8 @@ module Openapi
             if object.update_attributes(resource_params)
               render json: Oj.dump(data: object.as_json(json_config)), status: 200
             else
-              log_errors object.errors
-              render json: Oj.dump(errors: object.errors), status: 422
+              log_errors object.errors.messages
+              render json: Oj.dump(errors: object.errors.messages), status: 422
             end
           else
             object_not_found
@@ -62,8 +62,8 @@ module Openapi
             if object.destroy
               head :no_content, status: 204
             else
-              log_errors object.errors
-              render json: Oj.dump(errors: object.errors), status: 422
+              log_errors object.errors.messages
+              render json: Oj.dump(errors: object.errors.messages), status: 422
             end
           else
             object_not_found
