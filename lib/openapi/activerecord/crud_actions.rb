@@ -76,24 +76,23 @@ module Openapi
         #
 
         def object_not_found
-          render json: { errors: ["#{resource_request_name} with id #{params[:id]} not found."] }, status: 404
+          render json: { errors: ["#{resource_request_name} with id #{params[:id]} not found."] },
+                 status: 404
         end
 
         def response_config
-          config  = {}
+          config = {}
           config[:only] = fields(params[:fields])
           config[:methods] = methods(params[:methods]) if params[:methods].present?
           config
         end
-        alias csv_config response_config
-        alias json_config response_config
+        alias_method :csv_config, :response_config
+        alias_method :json_config, :response_config
 
         ## Helpers
 
         def log_errors(errors)
-          if Rails.env.development?
-            logger.info "Errors:\n  #{errors.to_h}"
-          end
+          logger.info "Errors:\n  #{errors.to_h}" if Rails.env.development?
         end
 
         # @return [Class]
@@ -119,18 +118,6 @@ module Openapi
           resource_class.new(resource_params)
         end
 
-        def support_version?
-          @object.respond_to?(:undo, true)
-        end
-
-        def set_object_version!
-          version = params[:version]
-          if version && support_version? && version.to_i != @object.version
-            @object.undo(nil, from: version.to_i + 1, to: @object.version)
-            @object.version = version
-          end
-        end
-
         def apply_scopes_to_chain!
           @chain = apply_scopes(@chain)
         end
@@ -141,10 +128,10 @@ module Openapi
 
         def search_filter_chain!
           query = params[:search]
-          if query && support_search?
-            normalized_query = query.to_s.downcase
-            @chain = @chain.search(normalized_query, match: :all)
-          end
+          return unless query && support_search?
+
+          normalized_query = query.to_s.downcase
+          @chain = @chain.search(normalized_query, match: :all)
         end
 
         #
@@ -158,7 +145,7 @@ module Openapi
 
         # @return [Array] the lists all the methods allowed to be called on the records.
         def whitelisted_methods
-          @whitelisted_methods ||= resource_class.openapi_method_attributes || []
+          @whitelisted_methods ||= resource_class.openapi_methods_attributes || []
         end
 
         #
