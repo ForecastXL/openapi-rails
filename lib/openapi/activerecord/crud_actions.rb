@@ -21,52 +21,44 @@ module Openapi
           set_index_headers!
 
           respond_to do |format|
-            format.json { render json: Oj.dump(data: @chain.as_json(json_config)), status: 200 }
+            format.json { render json: { data: @chain.as_json(json_config) }, status: 200 }
             format.csv  { render csv: @chain }
           end
         end
 
         def show
-          if object = find_object
-            render json: Oj.dump(data: object.as_json(json_config)), status: 200
-          else
-            object_not_found
-          end
+          return object_not_found unless object
+
+          render json: { data: object.as_json(json_config) }, status: 200
         end
 
         def create
           object = build_object
+
           if object.save
-            render json: Oj.dump(data: object.as_json(json_config)), status: 201
+            render json: { data: object.as_json(json_config) }, status: 201
           else
-            log_errors object.errors.messages
-            render json: Oj.dump(errors: object.errors.messages), status: 422
+            render json: { errors: object.errors.messages }, status: 422
           end
         end
 
         def update
-          if object = find_object
-            if object.update_attributes(resource_params)
-              render json: Oj.dump(data: object.as_json(json_config)), status: 200
-            else
-              log_errors object.errors.messages
-              render json: Oj.dump(errors: object.errors.messages), status: 422
-            end
+          return object_not_found unless object
+
+          if object.update(resource_params)
+            render json: { data: object.as_json(json_config) }, status: 200
           else
-            object_not_found
+            render json: { errors: object.errors.messages }, status: 422
           end
         end
 
         def destroy
-          if object = find_object
-            if object.destroy
-              head :no_content, status: 204
-            else
-              log_errors object.errors.messages
-              render json: Oj.dump(errors: object.errors.messages), status: 422
-            end
+          return object_not_found unless object
+
+          if object.destroy
+            head :no_content, status: 204
           else
-            object_not_found
+            render json: { errors: object.errors.messages }, status: 422
           end
         end
 
@@ -89,12 +81,6 @@ module Openapi
         alias_method :csv_config, :response_config
         alias_method :json_config, :response_config
 
-        ## Helpers
-
-        def log_errors(errors)
-          logger.info "Errors:\n  #{errors.to_h}" if Rails.env.development?
-        end
-
         # @return [Class]
         def resource_class
           @resource_class ||= self.class.resource_class || controller_to_class
@@ -110,8 +96,8 @@ module Openapi
           resource_class
         end
 
-        def find_object
-          resource_class.find_by(id: params[:id])
+        def object
+          @object ||= resource_class.find_by(id: params[:id])
         end
 
         def build_object
@@ -151,7 +137,7 @@ module Openapi
         #
         # FIELDS
         #
-        # With the fields property the attributes to be returned per record can be limited.
+        # With the fields property the attributes to be returned per object can be limited.
 
         # @return [Array] with the fields to be returned. Will return the default fields if none specified.
         def fields(param)
